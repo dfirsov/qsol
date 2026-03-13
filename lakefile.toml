@@ -6,13 +6,18 @@ defaultTargets = ["Qsol"]
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 relaxedAutoImplicit = false
-weak.linter.mathlibStandardSet = true
+weak.linter.mathlibStandardSet = false
 maxSynthPendingDepth = 3
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.29.0-rc6"
+rev = "e549dc07be46cc0c65177f9f2c7d82931c9ef455"
+
+[[require]]
+name = "quantumlib"
+git = "https://github.com/inQWIRE/LeanQuantum"
+rev = "main"
 
 [[lean_lib]]
 name = "Qsol"
