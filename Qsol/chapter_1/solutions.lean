@@ -8,7 +8,7 @@ import Quantumlib.Tactic.Basic
 import Quantumlib.ForMathlib.Data.Matrix.Kron
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 
-open Kron Matrix Complex
+open Complex
 
 
 lemma exercise_1_1_2 : Complex.I ^15 = - Complex.I := by
@@ -77,6 +77,15 @@ lemma exercise_1_2_6 :
      · exact normSq_nonneg c1
 
 
+lemma exercise_1_2_9 :
+  ∀ (c : ℂ),
+  c * -1 = -c.re - c.im * Complex.I := by
+  intros c
+  refine Complex.ext_iff.mpr ?_
+  constructor
+  · simp [mul_re]
+  · simp [mul_im]
+
 lemma exercise_1_2_10 :
   ∀ (c1 c2 : ℂ),
   (star c1) + (star c2) = star (c1 + c2) := by
@@ -100,3 +109,61 @@ lemma exercise_1_2_11 :
   apply Complex.ext
   · simp [Complex.mul_re]
   · simp [Complex.mul_im, add_comm]
+
+lemma eq_1_49 :
+ ∀ (c : ℂ),
+   c * (star c) = ‖c‖ ^ 2 := by
+  intros c
+  refine Complex.ext_iff.mpr ?_
+  constructor
+  · simp [mul_re]
+    rw [← mul_conj']
+    simp[mul_re]
+  · simp [mul_im]
+    rw [← mul_conj']
+    simp[mul_im]
+
+
+
+
+lemma exercise_1_3_7 :
+    let c1 := 2 + 2 * Complex.I;
+    let c2 := 1 -  Complex.I;
+  c1 / c2 = 2 * Complex.I := by
+  intros c1 c2
+  simp[c1, c2]
+  refine Complex.ext_iff.mpr ?_
+  simp[Complex.div_re]
+  constructor
+  · ring
+  · simp[Complex.div_im]
+    ring
+    simp[normSq_apply]
+    norm_num
+
+-- Let c = 1 − i. Convert it to polar coordinates, calculate its fifth
+-- power, and revert the answers to Cartesian coordinates.
+-- Polar form: c = √2 · exp(-πi/4)
+-- Fifth power: c^5 = (√2)^5 · exp(-5πi/4) = 4√2 · exp(-5πi/4)
+-- Converting back: exp(-5πi/4) = -√2/2 + (√2/2)i, so c^5 = -4 + 4i
+lemma exercise_1_3_8 :
+    (1 - Complex.I : ℂ) ^ 5 = -4 + 4 * Complex.I := by
+  have h2 : (1 - Complex.I : ℂ) ^ 2 = -2 * Complex.I := by
+    apply Complex.ext <;>
+    simp [sq, Complex.mul_re, Complex.mul_im, Complex.sub_re, Complex.sub_im,
+          Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im] <;>
+    norm_num
+  calc (1 - Complex.I : ℂ) ^ 5
+      = ((1 - Complex.I) ^ 2) ^ 2 * (1 - Complex.I) := by ring
+    _ = (-2 * Complex.I) ^ 2 * (1 - Complex.I) := by rw [h2]
+    _ = -4 + 4 * Complex.I := by
+        apply Complex.ext <;>
+        simp [sq, Complex.mul_re, Complex.mul_im, Complex.sub_re, Complex.sub_im,
+              Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im,
+              Complex.add_re, Complex.add_im, Complex.neg_re, Complex.neg_im] <;>
+        norm_num
+
+
+-- claude --resume aa171c10-b5d7-4179-89fb-9548dd639cc7
+-- exercise 1_3_9 find all cube roots of c = 1 + i
+-- and prove that they are indeed cube roots of c.
