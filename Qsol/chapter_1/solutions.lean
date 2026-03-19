@@ -27,6 +27,13 @@ lemma exercise_1_1_3 :
   · simp [c1, c2]
     norm_num
 
+lemma exercise_1_2_4 :
+  let c := 4 - 3 * Complex.I;
+  ‖c‖ = 5 := by
+  simp [norm_def, normSq_apply]
+  norm_num
+
+
 
 lemma exercise_1_2_5 :
   ∀ (c1 c2 : ℂ),
@@ -100,3 +107,23 @@ lemma exercise_1_2_11 :
   apply Complex.ext
   · simp [Complex.mul_re]
   · simp [Complex.mul_im, add_comm]
+
+lemma exercise_1_3_4 :
+  let c1 := -2 - Complex.I;
+  let c2 := -1 - 2 * Complex.I;
+  let c1c2 := c1 * c2;
+  let rho1:= ‖c1‖;
+  let rho2 := ‖c2‖;
+  let theta1 := Complex.arg c1;
+  let theta2 := Complex.arg c2;
+  rho1 * rho2 * Complex.exp ((theta1 + theta2) * Complex.I)
+  = c1c2 := by
+  intros c1 c2 c1c2 rho1 rho2 theta1 theta2
+  have h1 : (rho1 : ℂ) * Complex.exp ((theta1 : ℂ) * Complex.I) = c1 :=
+    Complex.norm_mul_exp_arg_mul_I c1
+  have h2 : (rho2 : ℂ) * Complex.exp ((theta2 : ℂ) * Complex.I) = c2 :=
+    Complex.norm_mul_exp_arg_mul_I c2
+  have step : (rho1 : ℂ) * rho2 * Complex.exp (((theta1 : ℂ) + theta2) * Complex.I) =
+    (↑rho1 * Complex.exp (↑theta1 * Complex.I)) * (↑rho2 * Complex.exp (↑theta2 * Complex.I)) := by
+    rw [add_mul, Complex.exp_add]; ring
+  rw [step, h1, h2]
