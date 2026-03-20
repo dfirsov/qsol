@@ -8,8 +8,22 @@ import Quantumlib.Tactic.Basic
 import Quantumlib.ForMathlib.Data.Matrix.Kron
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 
-open Complex
+open Complex Real
 
+lemma exercise_1_1_1 : ∀ (x : ℝ), x^4 + 2*x^2 + 1 > 0 := by
+   have : ∀ (x : ℝ), x^4 + 2*x^2 + 1 = (x^2 + 1)^2 := by
+     intro x
+     simp [sq, mul_add, mul_comm]
+     ring
+   intro x
+   rw[this]
+   apply sq_pos_of_ne_zero
+   intro h
+   have : x^2 + 1 > 0 := by
+      apply add_pos_of_nonneg_of_pos
+      exact sq_nonneg x
+      exact zero_lt_one
+   aesop
 
 lemma exercise_1_1_2 : Complex.I ^15 = - Complex.I := by
    rw [Complex.I_pow_eq_pow_mod]
@@ -25,6 +39,15 @@ lemma exercise_1_1_3 :
   · simp [c1 , c2]
     norm_num
   · simp [c1, c2]
+    norm_num
+
+lemma exercise_1_2_3 :
+    (3 * Complex.I : ℂ) / (-1 - Complex.I) = -(3/2) - (3/2) * Complex.I := by
+  refine Complex.ext_iff.mpr ?_
+  constructor
+  · simp [Complex.div_re, normSq_apply]
+    norm_num
+  · simp [Complex.div_im, normSq_apply]
     norm_num
 
 lemma exercise_1_2_4 :
@@ -82,6 +105,15 @@ lemma exercise_1_2_6 :
          linarith
        · exact normSq_nonneg c2
      · exact normSq_nonneg c1
+
+
+lemma exercise_1_2_8 :
+  ∀ (c : ℂ),
+  c * 1 = c := by
+  intros c
+  refine Complex.ext_iff.mpr ?_
+  constructor <;> simp
+
 
 
 lemma exercise_1_2_9 :
@@ -189,6 +221,8 @@ lemma exercise_1_3_8 :
               Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im,
               Complex.add_re, Complex.add_im, Complex.neg_re, Complex.neg_im] <;>
         norm_num
+
+
 
 
 -- claude --resume aa171c10-b5d7-4179-89fb-9548dd639cc7

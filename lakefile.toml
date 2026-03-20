@@ -21,3 +21,7 @@ rev = "main"
 
 [[lean_lib]]
 name = "Qsol"
+
+[[lean_exe]]
+name = "complex_io"
+root = "Qsol.chapter_1.programming_drill"
