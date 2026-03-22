@@ -169,21 +169,6 @@ lemma exercise_1_3_4 :
     rw [add_mul, Complex.exp_add]; ring
   rw [step, h1, h2]
 
-lemma eq_1_49 :
- ∀ (c : ℂ),
-   c * (star c) = ‖c‖ ^ 2 := by
-  intros c
-  refine Complex.ext_iff.mpr ?_
-  constructor
-  · simp [mul_re]
-    rw [← mul_conj']
-    simp[mul_re]
-  · simp [mul_im]
-    rw [← mul_conj']
-    simp[mul_im]
-
-
-
 
 lemma exercise_1_3_7 :
     let c1 := 2 + 2 * Complex.I;
@@ -200,6 +185,22 @@ lemma exercise_1_3_7 :
     simp[normSq_apply]
     norm_num
 
+lemma eq_1_49 :
+ ∀ (c : ℂ),
+   c * (star c) = ‖c‖ ^ 2 := by
+  intros c
+  refine Complex.ext_iff.mpr ?_
+  constructor
+  · simp [mul_re]
+    rw [← mul_conj']
+    simp[mul_re]
+  · simp [mul_im]
+    rw [← mul_conj']
+    simp[mul_im]
+
+
+
+
 -- Let c = 1 − i. Convert it to polar coordinates, calculate its fifth
 -- power, and revert the answers to Cartesian coordinates.
 -- Polar form: c = √2 · exp(-πi/4)
@@ -207,20 +208,67 @@ lemma exercise_1_3_7 :
 -- Converting back: exp(-5πi/4) = -√2/2 + (√2/2)i, so c^5 = -4 + 4i
 lemma exercise_1_3_8 :
     (1 - Complex.I : ℂ) ^ 5 = -4 + 4 * Complex.I := by
-  have h2 : (1 - Complex.I : ℂ) ^ 2 = -2 * Complex.I := by
-    apply Complex.ext <;>
-    simp [sq, Complex.mul_re, Complex.mul_im, Complex.sub_re, Complex.sub_im,
-          Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im] <;>
-    norm_num
-  calc (1 - Complex.I : ℂ) ^ 5
-      = ((1 - Complex.I) ^ 2) ^ 2 * (1 - Complex.I) := by ring
-    _ = (-2 * Complex.I) ^ 2 * (1 - Complex.I) := by rw [h2]
-    _ = -4 + 4 * Complex.I := by
-        apply Complex.ext <;>
-        simp [sq, Complex.mul_re, Complex.mul_im, Complex.sub_re, Complex.sub_im,
-              Complex.one_re, Complex.one_im, Complex.I_re, Complex.I_im,
-              Complex.add_re, Complex.add_im, Complex.neg_re, Complex.neg_im] <;>
-        norm_num
+  -- Step 1: express 1 - i in polar form: 1 - i = √2 · exp(-πi/4)
+  have hnorm : ‖(1 - Complex.I : ℂ)‖ = Real.sqrt 2 := by
+    simp [norm_def, normSq_apply]; norm_num
+  -- arg(1 - i) = -π/4  via  arg_of_im_neg: arg z = -arccos(re/‖z‖) when im < 0
+  have harg : Complex.arg (1 - Complex.I) = -(Real.pi / 4) := by
+    rw [Complex.arg_of_im_neg (by norm_num : (1 - Complex.I : ℂ).im < 0), hnorm]
+    simp only [Complex.sub_re, Complex.one_re, Complex.I_re, sub_zero]
+    -- arccos(1/√2) = π/4 since cos(π/4) = 1/√2 and π/4 ∈ [0, π]
+    have hcos14 : (1 : ℝ) / Real.sqrt 2 = Real.cos (Real.pi / 4) := by
+      rw [Real.cos_pi_div_four]
+      rw [div_eq_div_iff (Real.sqrt_ne_zero'.mpr (by norm_num)) (by norm_num : (2:ℝ) ≠ 0)]
+      linarith [Real.mul_self_sqrt (show (0:ℝ) ≤ 2 by norm_num)]
+    have h14 : Real.arccos (1 / Real.sqrt 2) = Real.pi / 4 := by
+      rw [hcos14]
+      exact Real.arccos_cos (by linarith [Real.pi_pos]) (by linarith [Real.pi_pos])
+    linarith
+  have hpolar : (1 - Complex.I : ℂ) =
+      ↑(Real.sqrt 2) * Complex.exp (↑(-(Real.pi / 4)) * Complex.I) :=
+    calc (1 - Complex.I : ℂ)
+        = ↑‖(1 - Complex.I : ℂ)‖ * Complex.exp (↑(Complex.arg (1 - Complex.I)) * Complex.I) :=
+          (Complex.norm_mul_exp_arg_mul_I _).symm
+      _ = ↑(Real.sqrt 2) * Complex.exp (↑(-(Real.pi / 4)) * Complex.I) := by
+          rw [hnorm, harg]
+  -- Step 2: raise to the 5th power in polar form: (√2·exp(-πi/4))^5 = (√2)^5 · exp(-5πi/4)
+  -- (√2)^5 = 4√2
+  have hsqrt5 : (↑(Real.sqrt 2) : ℂ) ^ 5 = ↑(4 * Real.sqrt 2) := by
+    norm_cast
+    have h2 : Real.sqrt 2 ^ 2 = 2 := Real.sq_sqrt (by norm_num)
+    calc Real.sqrt 2 ^ 5
+        = (Real.sqrt 2 ^ 2) ^ 2 * Real.sqrt 2 := by ring
+      _ = 2 ^ 2 * Real.sqrt 2 := by rw [h2]
+      _ = 4 * Real.sqrt 2 := by norm_num
+  -- exp(-πi/4)^5 = exp(-5πi/4)
+  have hexp5 : Complex.exp (↑(-(Real.pi / 4)) * Complex.I) ^ 5 =
+      Complex.exp (↑(-(5 * Real.pi / 4)) * Complex.I) := by
+    rw [← Complex.exp_nat_mul]
+    congr 1; push_cast; ring
+  -- Step 3: convert exp(-5πi/4) back to Cartesian: cos(-5π/4) = -√2/2, sin(-5π/4) = √2/2
+  have hcos : Real.cos (-(5 * Real.pi / 4)) = -(Real.sqrt 2 / 2) := by
+    rw [Real.cos_neg, show 5 * Real.pi / 4 = Real.pi + Real.pi / 4 by ring,
+        Real.cos_add, Real.cos_pi, Real.sin_pi, Real.cos_pi_div_four]; ring
+  have hsin : Real.sin (-(5 * Real.pi / 4)) = Real.sqrt 2 / 2 := by
+    rw [Real.sin_neg, show 5 * Real.pi / 4 = Real.pi + Real.pi / 4 by ring,
+        Real.sin_add, Real.cos_pi, Real.sin_pi, Real.sin_pi_div_four]; ring
+  -- exp(↑r * I).re = cos r  and  exp(↑r * I).im = sin r  (Euler's formula components)
+  have hexp_cart : Complex.exp (↑(-(5 * Real.pi / 4)) * Complex.I) =
+      ↑(-(Real.sqrt 2 / 2)) + ↑(Real.sqrt 2 / 2) * Complex.I := by
+    apply Complex.ext
+    · rw [Complex.exp_ofReal_mul_I_re, hcos]
+      simp [Complex.add_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+            Complex.I_re, Complex.I_im]
+    · rw [Complex.exp_ofReal_mul_I_im, hsin]
+      simp [Complex.add_im, Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im,
+            Complex.I_re, Complex.I_im]
+  -- Assemble: 4√2 · (-√2/2 + √2/2·i) = -4 + 4i
+  rw [hpolar, mul_pow, hsqrt5, hexp5, hexp_cart]
+  have hsq2 : Real.sqrt 2 * Real.sqrt 2 = 2 := Real.mul_self_sqrt (by norm_num)
+  apply Complex.ext <;>
+  simp [Complex.mul_re, Complex.mul_im, Complex.add_re, Complex.add_im,
+        Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im] <;>
+  nlinarith [Real.sqrt_nonneg 2]
 
 
 

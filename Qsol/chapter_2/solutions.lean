@@ -11,10 +11,194 @@ import Mathlib.LinearAlgebra.Matrix.Kronecker
 open Kron Matrix Complex
 
 
+lemma exercise_2_1_1 :
+   let A := !![5+13*I;
+               6+2*I;
+               0.53 - 6*I;
+               12];
+   let B := !![7-8*I;
+               4*I;
+               2;
+               9.4 + 3*I];
+   A + B = !![12+5*I;
+              6+6*I;
+              2.53 - 6*I;
+              21.4 + 3*I] := by
+   solve_matrix
+
+
+lemma exercise_2_1_2 :
+  ∀ (V W X : CVector n),
+    (V + W) + X = V + (W + X) := by
+   intros V W X
+   ext
+   simp only [add_apply]
+   rw [add_assoc]
+
+#norm_num ((16 + 2.3*I)* (8 - 2*I)).im
+
+lemma exercise_2_1_3 :
+  let c := 8 - 2*I;
+  let V := !![16 + 2.3*I;
+               -7*I;
+               6;
+               5-4*I;];
+   c • V = !![663/5 - 68/5*I;
+             -14 - 56*I;
+             48 - 12*I;
+             32 - 42*I] := by
+   solve_matrix
+   refine Complex.ext_iff.mpr ?_
+   constructor
+   norm_num
+   norm_num
+   refine Complex.ext_iff.mpr ?_
+   constructor <;> norm_num
+   refine Complex.ext_iff.mpr ?_
+   constructor <;> norm_num
+
+lemma exercise_2_1_4 :
+  ∀ (c₁ c₂ : ℂ) (V : CVector n),
+    (c₁ + c₂) • V = c₁ • V + c₂ • V := by
+   intros c₁ c₂ V
+   ext
+   simp only [smul_apply, add_apply]
+   rw [add_smul]
+
+
+lemma exercise_2_2_1 :
+   let r₁ := 2;
+   let r₂ := 3;
+   let V := !![2;
+              -4;
+               1;];
+   (r₁ * r₂) • V = (r₁ • (r₂ • V)) := by
+   solve_matrix
+
+
+-- Show which SMul instance is synthesized, then #print the result name:
+#synth SMul ℂ ℂ
+#check (2 : ℂ) • (1 : ℂ)
+#synth Inhabited Nat
+set_option pp.all true in #check (· • · : ℂ → ℂ → ℂ)
+set_option pp.all true in #check (· • · : ℂ → CMatrix 2 2 → CMatrix 2 2)
+
+lemma exercise_2_2_3_v :
+   ∀  (V : CMatrix n m),
+      (1 : ℂ) • V = V := by
+    intros V
+    ext i j
+    simp only [smul_apply]
+    rw [smul_eq_mul (1 : ℂ) (V i j)]
+    simp
+
+lemma exercise_2_2_3_vi :
+   ∀ (c₁ c₂ : ℂ) (V : CMatrix n m),
+      c₁ • (c₂ • V) = (c₁ * c₂) • V := by
+    intros c₁ c₂ V
+    ext
+    simp only [smul_apply]
+    simp
+    ring
+
+
+lemma exercise_2_2_3_viii :
+   ∀ (c₁ c₂ : ℂ) (V : CMatrix n m),
+      (c₁ + c₂) • V = c₁ • V + c₂ • V := by
+    intros c₁ c₂ V
+    ext
+    simp only [smul_apply, add_apply]
+    rw [add_smul]
+
+lemma exercise_2_2_5 :
+   let A := !![6-3*I, 2+12*I, -19*I;
+               0, 5+2.1*I, 17;
+               1, 2+5*I, 3-4.5*I];
+   Aᵀ = !![6-3*I, 0, 1;
+               2+12*I, 5+2.1*I, 2+5*I;
+               -19*I, 17, 3-4.5*I] ∧
+   (A.map star) =
+            !![6+3*I, 2-12*I, 19*I;
+               0, 5-2.1*I, 17;
+               1, 2-5*I, 3+4.5*I]  := by
+   constructor
+   solve_matrix
+   solve_matrix
+   · simp only [starRingEnd_apply]
+     norm_num
+   · simp only [starRingEnd_apply]
+     norm_num
+     ring_nf
+   · simp only [starRingEnd_apply]
+     norm_num
+   · simp only [starRingEnd_apply]
+     norm_num
+     ring_nf
+   · simp only [starRingEnd_apply]
+     norm_num
+   · simp only [starRingEnd_apply]
+     norm_num
+     ring_nf
+   · simp only [starRingEnd_apply]
+     norm_num
+
+
+lemma exercise_2_2_6 :
+ ∀ (c : ℂ) (A : CMatrix m n),
+   (c • A)ᴴ  = (star c) • Aᴴ := by
+   intros c A
+   ext i j
+   simp only [smul_apply]
+   rw[conjTranspose_smul]
+   rw[conjTranspose_apply]
+   rw [smul_apply]
+   rw [conjTranspose_apply]
+
+-- Adjoint is idempotent: ( A† )† = A.
+lemma exercise_2_2_7_vii :
+  ∀ (A : CMatrix m n),
+    (Aᴴ)ᴴ = A := by
+   intros A
+   ext i j
+   rw[conjTranspose_apply]
+   rw[conjTranspose_apply]
+   refine Complex.ext_iff.mpr ?_
+   constructor
+   simp only [star_def]
+   simp only [conj_re]
+   simp only [star_def]
+   simp only [conj_im]
+   simp
+
+
+lemma exercise_2_2_7_viii :
+  ∀ (A B : CMatrix m n),
+    (A + B)ᴴ = Aᴴ + Bᴴ := by
+   intros A B
+   ext i j
+   rw[conjTranspose_apply]
+   simp only [add_apply]
+   rw [star_add]
+   rw [conjTranspose_apply]
+   rw [conjTranspose_apply]
+
+lemma exercise_2_2_7_ix :
+  ∀ (c : ℂ) (A : CMatrix m n),
+    (c • A)ᴴ = (star c) • Aᴴ := by
+   intros c A
+   ext i j
+   rw[conjTranspose_apply]
+   rw[smul_apply]
+   rw [star_smul]
+   rw[smul_apply]
+   rw[conjTranspose_apply]
+
 
 lemma exercise_2_7_1 :
  !![8,12,6,12,18,9] = !![2,3] ⊗ !![4,6,3] := by
    solve_matrix
+
+
 
 
 lemma exercise_2_7_2: ∀ x : CMatrix 1 3, ∀ y : CMatrix 1 2,
