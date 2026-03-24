@@ -7,8 +7,58 @@ import Quantumlib.Data.Basic
 import Quantumlib.Tactic.Basic
 import Quantumlib.ForMathlib.Data.Matrix.Kron
 import Mathlib.LinearAlgebra.Matrix.Kronecker
+import Mathlib.LinearAlgebra.Basis.Basic
+
 
 open Kron Matrix Complex
+
+#check Module.Basis.mk
+
+lemma exercise_2_3_2' :
+  LinearIndependent ℂ ![!![ (1 : ℂ);1;1],!![(0 : ℂ);1;1],!![0;0;1]] := by
+  rw [Fintype.linearIndependent_iff]
+  intros c hc i
+  rw [Fin.sum_univ_three] at hc
+  simp at hc
+  have h0 : c 0 = 0 := by
+    apply congr_arg (fun x => x 0 0) at hc
+    simp at hc
+    exact hc
+  have h1 : c 1 = 0 := by
+    apply congr_arg (fun x => x 1 0) at hc
+    simp at hc
+    rw [h0] at hc
+    simp at hc
+    exact hc
+  have h2 : c 2 = 0 := by
+    apply congr_arg (fun x => x 2 0) at hc
+    simp at hc
+    rw [h0, h1] at hc
+    simp at hc
+    exact hc
+  fin_cases i <;> simp [h0, h1, h2]
+
+lemma exercise_2_3_2'' :
+ ⊤ ≤ Submodule.span ℂ  (Set.range ![!![ (1 : ℂ);1;1],!![(0 : ℂ);1;1],!![0;0;1]]) := by
+  intro x hx
+  refine (Submodule.mem_span_range_iff_exists_fun ℂ).mpr ?_
+  use (![x 0 0, x 1 0 - x 0 0, x 2 0 - x 1 0])
+  rw [Fin.sum_univ_three]
+  simp
+  solve_matrix
+
+noncomputable def exercise_2_3_2 : Module.Basis (Fin 3) ℂ (CVector 3) :=
+ let v := ![!![ (1 : ℂ);1;1],!![(0 : ℂ);1;1],!![0;0;1]] ;
+ let hli : LinearIndependent ℂ v := by
+  exact exercise_2_3_2'
+ let hsp : ⊤ ≤ Submodule.span ℂ  (Set.range v)
+  := by exact exercise_2_3_2''
+ Module.Basis.mk hli hsp
+
+
+
+
+
 
 
 lemma exercise_2_1_1 :
@@ -192,6 +242,94 @@ lemma exercise_2_2_7_ix :
    rw [star_smul]
    rw[smul_apply]
    rw[conjTranspose_apply]
+
+
+
+lemma exercise_2_2_9 : ∀ (A : CMatrix m n) (B : CMatrix n l),
+ (A * B)ᵀ = Bᵀ * Aᵀ := by
+  intros A B
+  ext i j
+  rw[transpose_apply]
+  rw[mul_apply]
+  rw[mul_apply]
+  refine Eq.symm (Fintype.sum_congr (fun a ↦ Bᵀ i a * Aᵀ a j) (fun a ↦ A j a * B a i) ?_)
+  intros a
+  simp
+  ring
+
+lemma exercise_2_2_10 : ∀ (A : CMatrix m n) (B : CMatrix n l),
+ (A * B)ᴴ = Bᴴ * Aᴴ := by
+ intros A B
+ have r1 : (A * B)ᴴ = (A * B)ᵀ.map star := by
+  rw [← @mulᵣ_eq]
+  aesop
+ have r2 :  (A * B)ᵀ.map star = (Bᵀ * Aᵀ).map star := by
+  aesop
+ have r3 : (Bᵀ * Aᵀ).map star = Bᵀ.map star * Aᵀ.map star := by
+  aesop
+ rw[r1,r2,r3]
+ exact rfl
+
+-- TODO example 2_2_5: show that CMatrix m n is a real vector space
+-- TODO exercise_2_2_12: is there a definition of Polyₙ as a vector space?
+-- TODO definition_2_2_5: linear maps?
+
+lemma exercise_2_3_1 :
+ let v₁ : CVector 3 := !![1; 2; 3];
+ let v₂ : CVector 3 := !![3; 0; 2];
+ let v₃ : CVector 3 := !![1; -4; -4];
+  ¬ LinearIndependent ℂ (![v₁, v₂, v₃]) := by
+simp only []
+intros hyp
+rw [Fintype.linearIndependent_iff] at hyp
+let g : Fin (Nat.succ 0).succ.succ → ℂ :=
+  (fun x => if x == 0 then 4 else if x == 1 then -2 else 2)
+
+have k : ∀ (i : Fin (Nat.succ 0).succ.succ), g i = 0 := by
+ apply hyp
+ rw [@Fin.sum_univ_three]
+ simp [g]
+ ring
+ solve_matrix
+have : 4 = (0 : ℂ) := by
+ rw[ ← (k 0)]
+ simp[g]
+clear hyp
+clear k
+clear g
+aesop -- how to do it?
+
+
+
+
+lemma exercise_2_3_1_star :
+ let v₁ : CVector 3 := !![1; 2; 3];
+ let v₂ : CVector 3 := !![3; 0; 3];
+ let v₃ : CVector 3 := !![1; -4; -4];
+  LinearIndependent ℂ (![v₁, v₂, v₃]) := by
+  simp only []
+  rw [Fintype.linearIndependent_iff]
+  intro c hc
+  -- Expand ∑ i : Fin 3, c i • vᵢ = 0  into  c 0 • v₁ + c 1 • v₂ + c 2 • v₃ = 0
+  rw [Fin.sum_univ_three] at hc
+  -- Extract the three row equations before simplifying (column index is always 0)
+  have h0 := congr_fun (congr_fun hc 0) 0
+  have h1 := congr_fun (congr_fun hc 1) 0
+  have h2 := congr_fun (congr_fun hc 2) 0
+  simp [Matrix.smul_apply, Matrix.add_apply, smul_eq_mul,
+        Matrix.cons_val', Matrix.cons_val_zero, Matrix.cons_val_one,
+        Matrix.head_cons, Matrix.head_fin_const] at h0 h1 h2
+  -- h0 : c 0 + 3 * c 1 + c 2 = 0
+  -- h1 : 2 * c 0 - 4 * c 2 = 0
+  -- h2 : 3 * c 0 + 3 * c 1 - 4 * c 2 = 0
+  intro i; fin_cases i
+  · simp
+    linear_combination 2 * h0 + (5 / 2) * h1 - 2 * h2
+  · simp
+    linear_combination -(2 / 3) * h0 - (7 / 6) * h1 + h2
+  · simp
+    linear_combination h0 + h1 - h2
+
 
 
 lemma exercise_2_7_1 :
